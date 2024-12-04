@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請求書作成フォーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .item-row input {
+            flex: 1;
+        }
+
+        .item-row button {
+            background-color: #f44336;
+        }
+
+        .totals {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>請求書作成フォーム</h1>
+        <form id="invoiceForm">
+            <label for="companyName">会社名</label>
+            <input type="text" id="companyName" name="companyName" required>
+
+            <label for="billingName">請求先名</label>
+            <input type="text" id="billingName" name="billingName" required>
+
+            <label for="invoiceDate">請求日</label>
+            <input type="date" id="invoiceDate" name="invoiceDate" required min="1900-01-01" max="2100-12-31">
+
+            <label for="dueDate">支払期日</label>
+            <input type="date" id="dueDate" name="dueDate" required min="1900-01-01" max="2100-12-31">
+
+            <h3>品目</h3>
+            <div id="itemContainer">
+                <div class="item-row">
+                    <input type="text" class="itemName" placeholder="品名" required>
+                    <input type="number" class="itemQuantity" placeholder="数量" min="1" value="1" required>
+                    <input type="number" class="itemPrice" placeholder="単価" min="0" value="0" required>
+                    <button type="button" class="removeItem">削除</button>
+                </div>
+            </div>
+            <button type="button" id="addItem">品目を追加</button>
+
+            <div class="totals">
+                <p>小計: ¥<span id="subtotal">0</span></p>
+                <p>消費税(10%): ¥<span id="tax">0</span></p>
+                <p>合計: ¥<span id="total">0</span></p>
+            </div>
+
+            <label for="description">備考</label>
+            <textarea id="description" name="description" rows="4"></textarea>
+
+            <button type="submit">送信</button>
+        </form>
+    </div>
+
+    <script>
+        const addItemButton = document.getElementById('addItem');
+        const itemContainer = document.getElementById('itemContainer');
+        const subtotalElement = document.getElementById('subtotal');
+        const taxElement = document.getElementById('tax');
+        const totalElement = document.getElementById('total');
+
+        addItemButton.addEventListener('click', function() {
+            const newItemRow = document.createElement('div');
+            newItemRow.classList.add('item-row');
+            newItemRow.innerHTML = `
+                <input type="text" class="itemName" placeholder="品名" required>
+                <input type="number" class="itemQuantity" placeholder="数量" min="1" value="1" required>
+                <input type="number" class="itemPrice" placeholder="単価" min="0" value="0" required>
+                <button type="button" class="removeItem">削除</button>
+            `;
+            itemContainer.appendChild(newItemRow);
+
+            // 削除ボタンのイベントを設定
+            newItemRow.querySelector('.removeItem').addEventListener('click', function() {
+                newItemRow.remove();
+                updateTotals();
+            });
+
+            // 入力が変更されたときに再計算
+            newItemRow.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', updateTotals);
+            });
+
+            updateTotals(); // 初期化
+        });
+
+        // 総計を計算
+        function updateTotals() {
+            let subtotal = 0;
+            const itemRows = document.querySelectorAll('.item-row');
+
+            itemRows.forEach(row => {
+                const quantity = parseFloat(row.querySelector('.itemQuantity').value) || 0;
+                const price = parseFloat(row.querySelector('.itemPrice').value) || 0;
+                subtotal += quantity * price;
+            });
+
+            const tax = subtotal * 0.10; // 10%の消費税
+            const total = subtotal + tax;
+
+            // 結果を表示
+            subtotalElement.textContent = subtotal.toFixed(2);
+            taxElement.textContent = tax.toFixed(2);
+            totalElement.textContent = total.toFixed(2);
+        }
+
+        // 初期化
+        document.querySelectorAll('.item-row input').forEach(input => {
+            input.addEventListener('input', updateTotals);
+        });
+    </script>
+
+</body>
+</html>
